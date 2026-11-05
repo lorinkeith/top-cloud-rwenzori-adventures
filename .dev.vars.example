@@ -1,0 +1,6 @@
+SUPABASE_URL=https://YOUR_TOP_CLOUD_PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_TOP_CLOUD_KEY
+# Optional notifications; submissions are saved even without email configuration.
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+CONTACT_EMAIL=info@topcloudrwenzoriadventures.com
