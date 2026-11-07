@@ -77,7 +77,7 @@ function StorySection() {
           <div className="mt-6 max-w-2xl space-y-5 text-sm leading-8 text-[#5e6761]">
             <p>Top Cloud Rwenzori Adventures creates complete travel experiences across Uganda and Africa. We design trips around each traveler&apos;s pace, interests, comfort level, flight needs, transfers, and dream moments.</p>
             <p>We offer air ticketing, safaris, tours, passport and visa services, hotels, travel insurance, and more. From the first flight to the final stay, we help bring the practical details together. Explore the world with us!</p>
-            <p><a className="font-bold text-luxury-green underline underline-offset-4" href="https://www.safaribookings.com/" target="_blank" rel="noopener noreferrer">Safaribookings</a></p>
+            <p>We are also on <a className="font-bold text-luxury-green underline underline-offset-4" href="https://www.safaribookings.com/" target="_blank" rel="noopener noreferrer">Safaribookings</a>.</p>
           </div>
           <Link className="luxury-button mt-8" to="/tours">Explore Tours</Link>
         </Reveal>
