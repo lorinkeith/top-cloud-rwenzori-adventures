@@ -28,10 +28,12 @@ const getEnv = (env, names) => {
 }
 
 const companyName = 'Top Cloud Rwenzori Adventures'
-const defaultFromEmail = `${companyName} <onboarding@resend.dev>`
+const defaultFromEmail = `${companyName} <info@topcloudtours.com>`
 
 function normalizeSender(value) {
   const sender = clean(value).replace(/^(['"])(.*)\1$/, '$2')
+  // Migrate the previous Resend test sender to the verified business domain.
+  if (/\bonboarding@resend\.dev\b/i.test(sender)) return defaultFromEmail
   const bracketEmail = sender.match(/<([^<>\s@]+@[^<>\s@]+\.[^<>\s@]+)>/)
   if (bracketEmail) return `${companyName} <${bracketEmail[1]}>`
   if (/^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/.test(sender)) return `${companyName} <${sender}>`
@@ -69,10 +71,10 @@ function emailShell(title, intro, rows, noteTitle, note) {
 }
 
 async function sendEmail(env, { replyTo, subject, html, text }) {
-  if (env.SMTP_HOST || env.SMTP_USER || env.SMTP_PASSWORD) {
+  const apiKey = getEnv(env, ['RESEND_API_KEY'])
+  if (!apiKey) {
     return sendSmtpEmail(env, { replyTo, subject, html, text })
   }
-  const apiKey = getEnv(env, ['RESEND_API_KEY'])
   const from = normalizeSender(getEnv(env, ['RESEND_FROM_EMAIL']))
   const to = getEnv(env, ['CONTACT_RECIPIENT_EMAILS', 'CONTACT_EMAIL']).split(',').map(clean).filter(Boolean)
 
@@ -88,6 +90,7 @@ async function sendEmail(env, { replyTo, subject, html, text }) {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
+      signal: AbortSignal.timeout(15000),
       body: JSON.stringify({
         from,
         to,
@@ -98,12 +101,11 @@ async function sendEmail(env, { replyTo, subject, html, text }) {
       }),
     })
   } catch {
-    return { ok: false, status: 502, message: 'Could not reach the email service. Please try again or contact us on WhatsApp.' }
+    return { ok: false, code: 'RESEND_UNREACHABLE' }
   }
 
   if (!response.ok) {
-    const error = await response.json().catch(() => null)
-    return { ok: false, status: 502, message: error?.message || 'The request could not be sent right now.' }
+    return { ok: false, code: `RESEND_HTTP_${response.status}` }
   }
 
   return { ok: true }

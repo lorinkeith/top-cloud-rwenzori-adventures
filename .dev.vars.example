@@ -1,6 +1,6 @@
 SUPABASE_URL=https://YOUR_TOP_CLOUD_PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_YOUR_TOP_CLOUD_KEY
-# Server-side SMTP settings for both booking and inquiry notifications
+# Server-side email settings for both booking and inquiry notifications
 SMTP_HOST=mail.topcloudtours.com
 SMTP_PORT=587
 SMTP_USER=info@topcloudtours.com
@@ -9,7 +9,7 @@ SMTP_USER=info@topcloudtours.com
 SMTP_PASSWORD="REPLACE_WITH_EXACT_MAILBOX_PASSWORD"
 SMTP_FROM_EMAIL="Top Cloud Tours <info@topcloudtours.com>"
 CONTACT_RECIPIENT_EMAILS=info@topcloudtours.com
-# Optional legacy Resend transport, used only when SMTP is not configured
+# Resend is used whenever its API key is configured. SMTP is used when it is empty.
 RESEND_API_KEY=
-RESEND_FROM_EMAIL=
+RESEND_FROM_EMAIL="Top Cloud Tours <info@topcloudtours.com>"
 CONTACT_EMAIL=info@topcloudtours.com
