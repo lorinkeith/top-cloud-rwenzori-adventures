@@ -95,7 +95,7 @@ export function BookingModal({ isOpen, tour, onClose }: BookingModalProps) {
     setStatus({ type: 'info', message: 'Sending your booking request...' })
 
     try {
-      await submitContactForm({
+      const result = await submitContactForm({
         selectedTour,
         packageId: tour?.id && /^[0-9a-f-]{36}$/i.test(tour.id) ? tour.id : undefined,
         formType: 'booking',
@@ -110,7 +110,7 @@ export function BookingModal({ isOpen, tour, onClose }: BookingModalProps) {
       })
       trackTourAnalyticsEventQuietly(tour?.id, 'booking_submitted')
       setForm(initialForm)
-      setStatus({ type: 'success', message: 'Booking request sent successfully. Our team will contact you shortly.' })
+      setStatus({ type: result.notificationSent ? 'success' : 'info', message: result.message })
     } catch (error) {
       setStatus({ type: 'error', message: error instanceof Error ? error.message : 'Something went wrong. Please try again or contact us on WhatsApp.' })
     } finally {

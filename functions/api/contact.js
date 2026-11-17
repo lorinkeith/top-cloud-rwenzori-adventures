@@ -1,3 +1,5 @@
+import { sendSmtpEmail } from '../../server/smtp.js'
+
 const headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
@@ -67,11 +69,14 @@ function emailShell(title, intro, rows, noteTitle, note) {
 }
 
 async function sendEmail(env, { replyTo, subject, html, text }) {
+  if (env.SMTP_HOST || env.SMTP_USER || env.SMTP_PASSWORD) {
+    return sendSmtpEmail(env, { replyTo, subject, html, text })
+  }
   const apiKey = getEnv(env, ['RESEND_API_KEY'])
   const from = normalizeSender(getEnv(env, ['RESEND_FROM_EMAIL']))
-  const to = getEnv(env, ['CONTACT_EMAIL'])
+  const to = getEnv(env, ['CONTACT_RECIPIENT_EMAILS', 'CONTACT_EMAIL']).split(',').map(clean).filter(Boolean)
 
-  if (!apiKey || !from || !to) {
+  if (!apiKey || !from || !to.length) {
     return { ok: false, status: 500, message: 'Email settings are missing. Please check your configured email keys and try again.' }
   }
 
@@ -85,7 +90,7 @@ async function sendEmail(env, { replyTo, subject, html, text }) {
       },
       body: JSON.stringify({
         from,
-        to: [to],
+        to,
         reply_to: replyTo,
         subject,
         html,
@@ -123,7 +128,7 @@ export async function onRequestPost({ request, env }) {
   const email = clean(body?.email).toLowerCase()
   const phone = clean(body?.phone)
 
-  if (!fullName || !email || !phone || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!fullName || fullName.length > 200 || !email || !phone || phone.length > 80 || /[\r\n]/.test(email) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json({ message: 'Please complete every required field with a valid email address.' }, 400)
   }
 
@@ -137,7 +142,7 @@ export async function onRequestPost({ request, env }) {
 
   if (formType === 'inquiry') {
     const message = clean(body?.message)
-    if (!message) return json({ message: 'Please add a message before sending.' }, 400)
+    if (!message || message.length > 500) return json({ message: 'Please enter a message of up to 500 characters.' }, 400)
 
     const rows = [
       ['Form type', 'General Inquiry'],
@@ -209,6 +214,10 @@ async function persistAndNotify(env,body,emailMessage) {
  } catch { return json({message:'Unable to reach the submission service. Please try again.'},502) }
  // The request is already saved. Notification failure must not invite duplicate submissions.
  const notification=await sendEmail(env,emailMessage)
- if (!notification.ok) console.warn('Top Cloud submission saved; email notification unavailable.')
- return json({message:'Your request was received successfully.',saved:true})
+ if (!notification.ok) console.warn('Top Cloud submission saved; email notification unavailable.', notification.code || 'EMAIL_UNAVAILABLE')
+ return json({
+  message: notification.ok ? 'Your request was received successfully. Our team will contact you shortly.' : 'Your request was saved for our team. Email notification failed. Our team can view your request in the dashboard.',
+  saved:true,
+  notificationSent:notification.ok,
+ })
 }

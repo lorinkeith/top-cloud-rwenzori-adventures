@@ -42,9 +42,9 @@ export function InquiryForm() {
     setIsSubmitting(true)
     setStatus({ type: 'info', message: 'Sending your inquiry...' })
     try {
-      await submitContactForm({ formType: 'inquiry', ...form })
+      const result = await submitContactForm({ formType: 'inquiry', ...form })
       setForm(initialForm)
-      setStatus({ type: 'success', message: 'Your inquiry has been sent. Our travel specialist will contact you shortly.' })
+      setStatus({ type: result.notificationSent ? 'success' : 'info', message: result.message })
     } catch (error) {
       setStatus({ type: 'error', message: error instanceof Error ? error.message : 'The inquiry could not be sent right now.' })
     } finally {
